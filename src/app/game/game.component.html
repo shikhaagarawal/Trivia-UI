@@ -1,0 +1,28 @@
+<!--<table border="1">
+  <thead></thead>
+  <tr>
+    <th>question</th>
+    <th>choice1</th>
+    <th>choice2</th>
+    <th>choice3</th>
+  </tr>
+
+  <tbody>
+  <tr *ngFor="let game of games">
+    <td>{{game.question}}</td>
+    <td>{{game.choice1}}</td>
+    <td>{{game.choice2}}</td>
+    <td>{{game.choice3}}</td>
+  </tr>
+  </tbody>
+</table>-->
+
+
+<div *ngFor="let game of games">
+  <div>{{game.question}}</div>
+  <mat-button-toggle-group multiple=true name="fontStyle" aria-label="Font Style">
+    <mat-button-toggle *ngFor="let choice of game.choices;" [value]="choice.choice">{{choice.text}}</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<!--<div class="selected-answer">Selected Answer: {{group.value}}</div>-->
