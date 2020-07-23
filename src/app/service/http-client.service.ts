@@ -17,7 +17,7 @@ export class HttpClientService {
 
   getGames(){
     console.log("test call");
-    //return this.httpClient.get<Games[]>('http://localhost:8080/games');
-    return this.httpClient.get<Games[]>('/games');
+    return this.httpClient.get<Games[]>('https://trivia-sa.herokuapp.com/games');
+    //return this.httpClient.get<Games[]>('/games');
   }
 }
