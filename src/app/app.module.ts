@@ -7,20 +7,28 @@ import { AppComponent } from './app.component';
 import { GameComponent } from './game/game.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
+import { PlayerComponent } from './player/player.component';
+import { PlayerService } from './player/player-service';
+import { FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
     AppComponent,
-    GameComponent
+    GameComponent,
+    PlayerComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
     MatButtonToggleModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FormsModule
+
   ],
-  providers: [],
+  providers: [
+    PlayerService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
