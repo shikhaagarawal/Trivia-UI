@@ -21,7 +21,4 @@ private REST_API_SERVER = "http://localhost:8080";
     //return this.httpClient.get<Games[]>('/games');
   }
 
-  newPlayer(player){
-    return this.httpClient.post<any>(this.REST_API_SERVER+'/api/newPlayer',player);
-  }
 }

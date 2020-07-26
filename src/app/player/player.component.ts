@@ -21,28 +21,12 @@ export class PlayerComponent implements OnInit,OnDestroy {
     })
   }
 
-    //constructor(playerService: PlayerService) {}
-
   ngOnInit(): void {
-    //this.playerService = new PlayerService(new PlayerComponent());
+    this.playerService._connect();
   }
 
   submitForm() {
-    //var formData: any = new FormData();
-    //formData.append("userName", this.form.get('inputName').value);
-
-    //var player = {};
-    //formData.forEach((value, key) => {player[key] = value});
-    //var json = JSON.stringify(player);
-
-    //console.log(json);
-
-    //this.httpClientService.newPlayer(json).subscribe(
-      //(response) => console.log(response),
-      //(error) => console.log(error)
-    //)
-
-    this.playerService.newPlayer(this.form.get('inputName').value)
+    this.playerService.newPlayer(this.form.get('inputName').value);
   }
 
     ngOnDestroy() {
