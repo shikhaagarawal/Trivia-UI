@@ -1,18 +1,33 @@
-
-  <form [formGroup]="form" (ngSubmit)="submitForm()">
-    <div class="form-group input-group-lg">
-      <h2><label for="inputName" class="col-sm-4 col-form-label">Enter Your Name to Begin</label></h2>
-      <div class="col-sm-10">
-        <input mdbInput type="text" class="form-control" id="inputName" formControlName="inputName" placeholder="Name">
-      </div>
+<form *ngIf="player && !question && !player.startGame" [formGroup]="form" (ngSubmit)="submitForm()">
+  <div class="form-group input-group-lg">
+    <h2><label for="inputName" class="col-sm-4 col-form-label">Enter Your Name to Begin</label></h2>
+    <div class="col-sm-10">
+      <input mdbInput type="text" class="form-control" id="inputName" formControlName="inputName" placeholder="Name">
     </div>
+  </div>
 
-    <div class="form-group row">
-      <div class="col-sm-10">
-        <button type="submit" >Start Game</button>
-      </div>
+  <div class="form-group row">
+    <div class="col-sm-10">
+      <button type="submit" [disabled]="newPlayerAdded">Start Game</button>
     </div>
-  </form>
+  </div>
+  <h2 *ngIf="newPlayerAdded"><label for="inputName" class="col-sm-4 col-form-label">Waiting for other players to start the game!!</label></h2>
+</form>
 
-  <div *ngIf="player.startGame"> <B>Game will begin in 10 seconds</B></div>
+
+
+<div *ngIf="player.startGame && !question"><B>Game will begin in 10 seconds</B></div>
+
+<div *ngIf="question">
+  <div>{{question.question}}</div>
+  <mat-button-toggle-group multiple=true name="fontStyle" aria-label="Font Style" vertical>
+    <mat-button-toggle *ngFor="let choice of question.choices;" (change)="onAnswerSelect($event)"
+                       [disabled]="answerSelected"
+                       [value]="choice.choice">{{choice.text}}</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<div class="chart-container" style="position: relative; height:40vh; width:70vw">
+  <canvas id="canvas">{{Chart}}</canvas>
+</div>
 

@@ -3,4 +3,5 @@ export class Player{
   gameInstance:string;
   startGame:boolean;
   gameId:any;
+  selectedAnswer: number;
 }
