@@ -16,7 +16,7 @@
 
 
 
-<div *ngIf="player.startGame && !question"><B>Game will begin in 10 seconds</B></div>
+<div *ngIf="player.startGame && !question"><B>Game will begin in {{timeLeft}} seconds</B></div>
 
 <div *ngIf="question">
   <div>{{question.question}}</div>

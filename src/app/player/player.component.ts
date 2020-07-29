@@ -18,10 +18,14 @@ export class PlayerComponent implements OnInit, OnDestroy {
   question: Question;
   form: FormGroup;
   webSocketEndPoint: string = 'http://localhost:8080/ws';
-  topic: string = "/topic/play/game";
+  playerQueue: string = "/user/queue/play/game";
+  addPlayerAPI: string = "/app/add/player";
+  quizAnswerSelectionAPI: string = "/app/quiz/selection";
   stompClient: any;
   answerSelected: boolean;
   newPlayerAdded: boolean;
+  timeLeft: number = 10;
+  interval;
 
   constructor(public fb: FormBuilder) {
     this.form = this.fb.group({
@@ -49,50 +53,49 @@ export class PlayerComponent implements OnInit, OnDestroy {
     const _this = this;
 
     _this.stompClient.connect({}, function (frame) {
-      _this.stompClient.subscribe(_this.topic, function (sdkEvent) {
+      _this.stompClient.subscribe(_this.playerQueue, function (sdkEvent) {
         _this.onMessageReceived(sdkEvent);
       });
-      //_this.stompClient.reconnect_delay = 2000;
     }, this.errorCallBack);
   }
 
   newPlayer(playerName: string) {
-    let player = new Player();
-    player.playerName = playerName;
-    this.stompClient.send("/app/add/player", {}, JSON.stringify(player));
-  };
-
-  disconnect() {
-    if (this.stompClient !== null) {
-      this.stompClient.disconnect();
-    }
-    console.log("Disconnected");
+    this.player.playerName = playerName;
+    this.stompClient.send(this.addPlayerAPI, {}, JSON.stringify(this.player));
   }
 
-  // on error, schedule a reconnection attempt
-  errorCallBack(error) {
-    console.log("errorCallBack -> " + error)
+  onAnswerSelect(event) {
+    this.player.selectedAnswer = event.value;
+    this.answerSelected = true;
+    this.stompClient.send(this.quizAnswerSelectionAPI, {}, JSON.stringify(this.player));
   }
 
   onMessageReceived(message) {
     let tempObject = JSON.parse(message.body);
     if (tempObject.playerName) {
       this.player = tempObject;
+      if (this.player.startGame) {
+        this.startCountDown(10);
+      }
     } else if (tempObject.question) {
       this.answerSelected = false;
       this.question = tempObject;
-    } else if (tempObject.stats) {
+    } else {
       //load stats
       this.stats = tempObject;
       this.renderChart();
     }
   }
 
-  onAnswerSelect(event) {
-    this.player.selectedAnswer = event.value;
-    this.answerSelected = true;
-    //Send selectedAnswer to server
-    this.stompClient.send("/app/quiz/choice", {}, JSON.stringify(this.player));
+  private startCountDown(timeInSeconds) {
+    this.interval = setInterval(() => {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+      }
+      if (this.timeLeft == 0) {
+        clearInterval(this.interval);
+      }
+    }, 1000)
   }
 
   //Show Statistics after every quiz
@@ -102,6 +105,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
   Chart = [];
 
   renderChart() {
+    this.stats.forEach((quizStats, index) => {
+        this.Options.push(quizStats.choice);
+        this.Selected.push(quizStats.playerCount);
+    });
     this.Chart = new Chart('canvas', {
       type: 'bar',
       data: {
@@ -109,8 +116,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
         datasets: [
           {
             data: this.Selected,
-            borderColor: '#3cb371',
-            backgroundColor: "#0000FF",
+            borderColor: '#edb139',
+            backgroundColor: "#edb139",
           }
         ]
       },
@@ -123,10 +130,26 @@ export class PlayerComponent implements OnInit, OnDestroy {
             display: true
           }],
           yAxes: [{
-            display: true
+            display: true,
+            ticks: {
+              stepSize: 1,
+              beginAtZero: true,
+            }
           }],
         }
       }
     });
+  }
+
+  disconnect() {
+    if (this.stompClient !== null) {
+      //TODO disconnect at server
+      this.stompClient.disconnect();
+    }
+    console.log("Disconnected");
+  }
+
+  errorCallBack(error) {
+    console.log("errorCallBack -> " + error)
   }
 }
