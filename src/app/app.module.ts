@@ -4,18 +4,22 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { GameComponent } from './game/game.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 import { PlayerComponent } from './player/player.component';
 import { PlayerService } from './player/player-service';
 import { FormsModule } from '@angular/forms';
+import { ThankyouComponent } from './thankyou/thankyou.component';
+import { LandingComponent } from './landing/landing.component';
+import { WinnerComponent } from './winner/winner.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    GameComponent,
-    PlayerComponent
+    PlayerComponent,
+    ThankyouComponent,
+    LandingComponent,
+    WinnerComponent
   ],
   imports: [
     BrowserModule,
