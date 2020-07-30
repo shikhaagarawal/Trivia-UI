@@ -19,6 +19,7 @@
 <div *ngIf="player.startGame && !question"><B>Game will begin in {{timeLeft}} seconds</B></div>
 
 <div *ngIf="question">
+  <B>Time remaining to answer <span class="highlightText">{{timeLeft}} </span>seconds</B>
   <div>{{question.question}}</div>
   <mat-button-toggle-group multiple=true name="fontStyle" aria-label="Font Style" vertical>
     <mat-button-toggle *ngFor="let choice of question.choices;" (change)="onAnswerSelect($event)"
@@ -28,6 +29,7 @@
 </div>
 
 <div class="chart-container" style="position: relative; height:40vh; width:70vw">
+  <div *ngIf="timeTakenToAnswer"><B>You took {{timeTakenToAnswer}} milliseconds to answer the question.</B></div>
   <canvas id="canvas">{{Chart}}</canvas>
 </div>
 

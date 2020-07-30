@@ -20,15 +20,17 @@ export class PlayerComponent implements OnInit, OnDestroy {
   player: Player;
   question: Question;
   form: FormGroup;
-  webSocketEndPoint: string = 'https://trivia-sa.herokuapp.com/ws';
-  playerQueue: string = "/user/queue/play/game";
-  addPlayerAPI: string = "/app/add/player";
-  quizAnswerSelectionAPI: string = "/app/quiz/selection";
+  WEB_SOCKET_ENDPOINT: string = 'https://trivia-sa.herokuapp.com/ws';
+  PLAYER_QUEUE: string = "/user/queue/play/game";
+  ADD_PLAYER_API: string = "/app/add/player";
+  QUIZ_SELECTED_ANSWER_API: string = "/app/quiz/selection";
   stompClient: any;
   answerSelected: boolean;
   newPlayerAdded: boolean;
   timeLeft: number = 10;
   interval;
+  startTime;
+  timeTakenToAnswer;
 
   constructor(public fb: FormBuilder,private router: Router) {
     this.form = this.fb.group({
@@ -51,33 +53,45 @@ export class PlayerComponent implements OnInit, OnDestroy {
 
   _connect() {
     console.log("Initialize WebSocket Connection");
-    let ws = new SockJS(this.webSocketEndPoint);
+    let ws = new SockJS(this.WEB_SOCKET_ENDPOINT);
     this.stompClient = Stomp.over(ws);
     const _this = this;
 
     _this.stompClient.connect({}, function (frame) {
-      _this.stompClient.subscribe(_this.playerQueue, function (sdkEvent) {
+      _this.stompClient.subscribe(_this.PLAYER_QUEUE, function (sdkEvent) {
         _this.onMessageReceived(sdkEvent);
       });
     }, this.errorCallBack);
   }
 
+  disconnect() {
+    if (this.stompClient !== null) {
+      //TODO disconnect at server
+      this.stompClient.disconnect();
+    }
+    console.log("Disconnected");
+  }
+
+  errorCallBack(error) {
+    console.log("errorCallBack -> " + error)
+  }
+
   newPlayer(playerName: string) {
     this.player.playerName = playerName;
-    this.stompClient.send(this.addPlayerAPI, {}, JSON.stringify(this.player));
+    this.stompClient.send(this.ADD_PLAYER_API, {}, JSON.stringify(this.player));
   }
 
   onAnswerSelect(event) {
     this.player.selectedAnswer = event.value;
     this.answerSelected = true;
-    this.stompClient.send(this.quizAnswerSelectionAPI, {}, JSON.stringify(this.player));
+    this.timeTakenToAnswer = performance.now()-this.startTime;
+    this.stompClient.send(this.QUIZ_SELECTED_ANSWER_API, {}, JSON.stringify(this.player));
   }
 
   onMessageReceived(message) {
     this.stats=[];
     let responseJson = JSON.parse(message.body);
     if (responseJson.stats && responseJson.stats.length > 0) {
-      //load stats
       this.stats = responseJson.stats;
       this.showStatistics(responseJson);
     } else if (responseJson.playerName) {
@@ -90,8 +104,12 @@ export class PlayerComponent implements OnInit, OnDestroy {
       }
     } else if (responseJson.question) {
       this.Chart=[];
+      this.timeLeft = 10;
       this.answerSelected = false;
       this.question = responseJson;
+      this.startTime = performance.now();
+      this.timeTakenToAnswer = '';
+      this.startCountDown(10);
     } else if(responseJson.winner){
       this.showCongrats();
     }
@@ -123,10 +141,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
       }
       , 3000);
     this.disconnect();
-  }
-
-  timeout(ms) { //pass a time in milliseconds to this function
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private startCountDown(timeInSeconds) {
@@ -186,15 +200,5 @@ export class PlayerComponent implements OnInit, OnDestroy {
     });
   }
 
-  disconnect() {
-    if (this.stompClient !== null) {
-      //TODO disconnect at server
-      this.stompClient.disconnect();
-    }
-    console.log("Disconnected");
-  }
 
-  errorCallBack(error) {
-    console.log("errorCallBack -> " + error)
-  }
 }
