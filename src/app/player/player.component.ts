@@ -1,13 +1,12 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
-import {FormBuilder, FormGroup, FormControl} from "@angular/forms";
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {Player} from '../model/player';
 import {Question} from '../model/question';
 import * as Stomp from 'stompjs';
 import * as SockJS from 'sockjs-client';
 import {QuizStats} from "../model/quizStats";
 import {Chart} from 'chart.js';
-import { Router } from "@angular/router";
-import {delay} from "rxjs/operators";
+import {Router} from "@angular/router";
 
 
 @Component({
@@ -17,14 +16,15 @@ import {delay} from "rxjs/operators";
 })
 export class PlayerComponent implements OnInit, OnDestroy {
 
-  player: Player;
-  question: Question;
-  form: FormGroup;
-  WEB_SOCKET_ENDPOINT: string = 'https://trivia-sa.herokuapp.com/ws';
-  //WEB_SOCKET_ENDPOINT: string = 'http://localhost:8080/ws';
+  //WEB_SOCKET_ENDPOINT: string = 'https://trivia-sa.herokuapp.com/ws';
+  WEB_SOCKET_ENDPOINT: string = 'http://localhost:8080/ws';
   PLAYER_QUEUE: string = "/user/queue/play/game";
   ADD_PLAYER_API: string = "/app/add/player";
   QUIZ_SELECTED_ANSWER_API: string = "/app/quiz/selection";
+
+  player: Player;
+  question: Question;
+  form: FormGroup;
   stompClient: any;
   answerSelected: boolean;
   newPlayerAdded: boolean;
@@ -33,6 +33,12 @@ export class PlayerComponent implements OnInit, OnDestroy {
   startTime;
   timeTakenToAnswer;
   progressBar : boolean;
+
+  //For stats canvas rendering
+  stats: QuizStats[];
+  Options = [];
+  Selected = [];
+  Chart = [];
 
   constructor(public fb: FormBuilder,private router: Router) {
     this.form = this.fb.group({
@@ -78,11 +84,20 @@ export class PlayerComponent implements OnInit, OnDestroy {
     console.log("errorCallBack -> " + error)
   }
 
+  /**
+   * Add player in server by calling ADD_PLAYER_API
+   * @param playerName
+   */
   newPlayer(playerName: string) {
     this.player.playerName = playerName;
     this.stompClient.send(this.ADD_PLAYER_API, {}, JSON.stringify(this.player));
   }
 
+  /**
+   * Ensure that player can select only one answer, therefore disable all other choices.
+   * Also, send the answer to the server
+   * @param event
+   */
   onAnswerSelect(event) {
     this.player.selectedAnswer = event.value;
     this.answerSelected = true;
@@ -90,12 +105,17 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.stompClient.send(this.QUIZ_SELECTED_ANSWER_API, {}, JSON.stringify(this.player));
   }
 
+  /**
+   * Websocket broadcast message will be recived here.
+   * @param message
+   */
   onMessageReceived(message) {
     this.stats=[];
     this.progressBar = false;
+    this.question=null;
     let responseJson = JSON.parse(message.body);
     if (responseJson.stats && responseJson.stats.length > 0) {
-
+      this.question=null;
       this.showStatistics(responseJson);
     } else if (responseJson.playerName) {
       this.decidePlayerDisplay(responseJson);
@@ -106,6 +126,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Decide whether player will begin the new game or exit current one based on websocket message response
+   * @param responseJson
+   * @private
+   */
   private decidePlayerDisplay(responseJson) {
     this.player = responseJson;
     if (!responseJson.playing) {
@@ -116,6 +141,11 @@ export class PlayerComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Reset the parameters to show a fresh question of next level
+   * @param responseJson
+   * @private
+   */
   private displayQuestion(responseJson) {
     this.Chart = [];
     this.timeLeft = 15;
@@ -126,8 +156,13 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.startCountDown(15);
   }
 
+  /**
+   * Display stats and if player can not continue next level then end his game.
+   * @param responseJson
+   * @private
+   */
   private showStatistics(responseJson) {
-    this.progressBar = false;
+    this.progressBar = true;
     this.stats = responseJson.stats;
     this.question = null;
     this.renderChart();
@@ -167,11 +202,6 @@ export class PlayerComponent implements OnInit, OnDestroy {
     }, 1000)
   }
 
-  //Show Statistics after every quiz
-  stats: QuizStats[];
-  Options = [];
-  Selected = [];
-  Chart = [];
 
   renderChart() {
     this.Options = [];
