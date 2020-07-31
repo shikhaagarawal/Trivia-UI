@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 import { ThankyouComponent } from './thankyou/thankyou.component';
 import { LandingComponent } from './landing/landing.component';
 import { WinnerComponent } from './winner/winner.component';
+import {MatProgressBarModule} from "@angular/material/progress-bar";
 
 @NgModule({
   declarations: [
@@ -27,7 +28,8 @@ import { WinnerComponent } from './winner/winner.component';
     HttpClientModule,
     MatButtonToggleModule,
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    MatProgressBarModule
 
   ],
   providers: [

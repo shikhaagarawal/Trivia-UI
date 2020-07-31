@@ -3,7 +3,7 @@ export interface Choices{
   text:string;
 }
 
-  export interface Question{
+  export class Question{
     choice:Choices;
     question:string;
 }

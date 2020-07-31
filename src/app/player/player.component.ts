@@ -21,6 +21,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   question: Question;
   form: FormGroup;
   WEB_SOCKET_ENDPOINT: string = 'https://trivia-sa.herokuapp.com/ws';
+  //WEB_SOCKET_ENDPOINT: string = 'http://localhost:8080/ws';
   PLAYER_QUEUE: string = "/user/queue/play/game";
   ADD_PLAYER_API: string = "/app/add/player";
   QUIZ_SELECTED_ANSWER_API: string = "/app/quiz/selection";
@@ -31,6 +32,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   interval;
   startTime;
   timeTakenToAnswer;
+  progressBar : boolean;
 
   constructor(public fb: FormBuilder,private router: Router) {
     this.form = this.fb.group({
@@ -84,39 +86,50 @@ export class PlayerComponent implements OnInit, OnDestroy {
   onAnswerSelect(event) {
     this.player.selectedAnswer = event.value;
     this.answerSelected = true;
-    this.timeTakenToAnswer = performance.now()-this.startTime;
+    this.timeTakenToAnswer = (performance.now()-this.startTime).toFixed(2);;
     this.stompClient.send(this.QUIZ_SELECTED_ANSWER_API, {}, JSON.stringify(this.player));
   }
 
   onMessageReceived(message) {
     this.stats=[];
+    this.progressBar = false;
     let responseJson = JSON.parse(message.body);
     if (responseJson.stats && responseJson.stats.length > 0) {
-      this.stats = responseJson.stats;
+
       this.showStatistics(responseJson);
     } else if (responseJson.playerName) {
-      this.player = responseJson;
-      if (!responseJson.playing) {
-        this.showThankYou();
-      }
-      if (this.player.startGame) {
-        this.startCountDown(10);
-      }
+      this.decidePlayerDisplay(responseJson);
     } else if (responseJson.question) {
-      this.Chart=[];
-      this.timeLeft = 10;
-      this.answerSelected = false;
-      this.question = responseJson;
-      this.startTime = performance.now();
-      this.timeTakenToAnswer = '';
-      this.startCountDown(10);
+      this.displayQuestion(responseJson);
     } else if(responseJson.winner){
       this.showCongrats();
     }
   }
 
-  private showStatistics(responseJson) {
+  private decidePlayerDisplay(responseJson) {
+    this.player = responseJson;
+    if (!responseJson.playing) {
+      this.showThankYou();
+    }
+    if (this.player.startGame) {
+      this.startCountDown(10);
+    }
+  }
 
+  private displayQuestion(responseJson) {
+    this.Chart = [];
+    this.timeLeft = 15;
+    this.answerSelected = false;
+    this.question = responseJson;
+    this.startTime = performance.now();
+    this.timeTakenToAnswer = '';
+    this.startCountDown(15);
+  }
+
+  private showStatistics(responseJson) {
+    this.progressBar = false;
+    this.stats = responseJson.stats;
+    this.question = null;
     this.renderChart();
 
     if (!responseJson.playing) {
@@ -126,7 +139,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
   }
 
   private showThankYou() {
-    this.player = new Player();
+    this.player = null;
     //Wait for 3 seconds before showing thank you page.
     setTimeout(() => {
         this.router.navigate(['thankYou'])
