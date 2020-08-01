@@ -6,4 +6,5 @@ export class Player {
   gameId: number;
   selectedAnswer: number;
   playing: boolean;
+  selectedCorrectAnswer:boolean;
 }

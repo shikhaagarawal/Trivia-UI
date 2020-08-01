@@ -16,8 +16,8 @@ import {Router} from "@angular/router";
 })
 export class PlayerComponent implements OnInit, OnDestroy {
 
-  //WEB_SOCKET_ENDPOINT: string = 'https://trivia-sa.herokuapp.com/ws';
-  WEB_SOCKET_ENDPOINT: string = 'http://localhost:8080/ws';
+  WEB_SOCKET_ENDPOINT: string = 'https://trivia-sa.herokuapp.com/ws';
+  //WEB_SOCKET_ENDPOINT: string = 'http://localhost:8080/ws';
   PLAYER_QUEUE: string = "/user/queue/play/game";
   ADD_PLAYER_API: string = "/app/add/player";
   QUIZ_SELECTED_ANSWER_API: string = "/app/quiz/selection";
@@ -133,11 +133,10 @@ export class PlayerComponent implements OnInit, OnDestroy {
    */
   private decidePlayerDisplay(responseJson) {
     this.player = responseJson;
+    this.timeLeft=10;
+    this.startCountDown(10);
     if (!responseJson.playing) {
       this.showThankYou();
-    }
-    if (this.player.startGame) {
-      this.startCountDown(10);
     }
   }
 
@@ -165,6 +164,8 @@ export class PlayerComponent implements OnInit, OnDestroy {
     this.progressBar = true;
     this.stats = responseJson.stats;
     this.question = null;
+    this.timeLeft=10;
+    this.startCountDown(10);
     this.renderChart();
 
     if (!responseJson.playing) {
